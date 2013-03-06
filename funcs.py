@@ -18,7 +18,6 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates/')
 
 
 def valid_keys(access_key, secret_key):
-    '''Simply checks the given keys actually work.'''
     
     try: EC2Connection(access_key, secret_key).get_all_instances()       
     except: return False
@@ -26,8 +25,11 @@ def valid_keys(access_key, secret_key):
 
 
 def hash_password(password):
-    '''This function is derived from passwd in IPython.lib. It hashes a
-    password correctly for use with the IPython notebook server.'''
+    
+    '''
+    This function is derived from passwd in IPython.lib. It hashes a
+    password correctly for use with the IPython notebook server.
+    '''
     
     h = hashlib.new('sha1')
     salt = ('%0' + str(12) + 'x') % random.getrandbits(48)
@@ -37,8 +39,11 @@ def hash_password(password):
 
 
 def get_instance_list(access_key, secret_key):
-    '''This function returns the html for the instance info that is displayed
-    by the client in the Your Notebook Servers panel.'''
+    
+    '''
+    This function returns the html for the instance info that is displayed
+    by the client in the Your Notebook Servers panel.
+    '''
     
     tab = '&nbsp;&nbsp;&nbsp;&nbsp;' 
     html_output = ''
@@ -136,11 +141,6 @@ def get_instance_list(access_key, secret_key):
 
 
 def create_vm(access_key, secret_key, user_details, instance_class):
-    '''This function actually launches the new vms, one each time it's
-    called. It creates a connection to EC2 on that account. It passes the
-    password for the notebooks pre-hashed, as well as some random user
-    details. It returns the connection object and the reservation object.
-    '''
 
     connection = EC2Connection(access_key, secret_key)
 
@@ -163,7 +163,6 @@ def create_vm(access_key, secret_key, user_details, instance_class):
     
     
 def control_vm(action, instance_list, access_key, secret_key):
-    '''Performs action on an existing instance or instances in instance_list.'''
     
     connection = EC2Connection(access_key, secret_key)
     
@@ -178,4 +177,3 @@ def control_vm(action, instance_list, access_key, secret_key):
         
     elif action == 'reboot':
         connection.reboot_instances(instance_ids=instance_list)
-        
