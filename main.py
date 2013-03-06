@@ -235,8 +235,7 @@ class Login(BaseHandler):
 
 
 class GoogleLogin(BaseHandler):
-    '''Just redirects users to Google's login thing.'''
-    
+
     def get(self):
     
         self.redirect(users.create_login_url('/login'))
