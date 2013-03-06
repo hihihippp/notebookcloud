@@ -50,8 +50,6 @@ class MainScreen(BaseHandler):
 
 
 class InstanceInfo(BaseHandler):
-    '''Returns the instance info, as HTML, that the client displays as
-    the instance list.'''
     
     def get(self):
 
