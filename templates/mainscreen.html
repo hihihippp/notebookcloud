@@ -353,15 +353,13 @@
                 obj.innerHTML = output;
                 };
             };
-        
-    </script><script>
+
     
         // Disables the Anchor Tag on the Instance Type Buttons
         $('.button').click(function(e) {
             e.preventDefault();
             });
-            
-    </script><script>
+
         
         // refresh instances list
         function refresh_instances(msg) {
@@ -386,8 +384,7 @@
             req.open('GET', '/instance_info');
             req.send()
             }
-            
-    </script><script>
+
     
         // control instances
         function control_instances(act, inst, msg) {
@@ -405,8 +402,7 @@
             req.open('GET', url);
             req.send()
             }
-            
-    </script><script>
+
     
         // terminate instance
         function terminate_instance(inst) {
@@ -416,7 +412,7 @@
                 }
             }
     
-    </script><script>
+
     
         // delete_account
         function delete_account() {
@@ -425,7 +421,6 @@
                 window.location = '/delete';
                 }
             }
-    </script><script>
     
     
         // launches new instances
@@ -445,8 +440,6 @@
             req.open('GET', url);
             req.send()
             }
-            
-    </script><script>
 
         // manages spinner display
         var spinning = true;
