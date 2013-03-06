@@ -238,7 +238,8 @@ class GoogleLogin(BaseHandler):
 
     def get(self):
     
-        self.redirect(users.create_login_url('/login'))
+        google_login_url = users.create_login_url('/login')
+        self.redirect(google_login_url)
 
 
 class Account(db.Model):
