@@ -45,7 +45,7 @@ def get_instance_list(access_key, secret_key):
     by the client in the Your Notebook Servers panel.
     '''
     
-    tab = '&nbsp;&nbsp;&nbsp;&nbsp;' 
+    tab = '&nbsp;'*4 
     html_output = ''
     refresh = False
     
