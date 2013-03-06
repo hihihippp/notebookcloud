@@ -149,17 +149,13 @@ class UpdateUserDetails(BaseHandler):
             
             if password_0 != password_1:
             
-                path = os.path.join(
-                    os.path.dirname(__file__), 'templates/error.html'
-                    )
+                html = template_dir + 'error.html'
                 args = {'error': 'Passwords must match.'+rejection}
-                self.response.out.write(template.render(path, args))
+                self.response.out.write(template.render(html, args))
             
             elif not valid_keys(access_key, secret_key):
             
-                path = os.path.join(
-                    os.path.dirname(__file__), 'templates/error.html'
-                    )
+                html = template_dir + 'error.html'
                 args = {'error': 'Invalid AWS keys.'+rejection}
                 self.response.out.write(template.render(path, args))
                 
@@ -176,10 +172,7 @@ class UpdateUserDetails(BaseHandler):
 
                 user_data += '|' + hash_password(password_0)
                 
-                try:
-                
-                    acc = Account.gql('WHERE user = :1', user)[0]
-                
+                try: acc = Account.gql('WHERE user = :1', user)[0]
                 except:
                 
                     acc = Account()
@@ -210,10 +203,8 @@ class Login(BaseHandler):
     def get(self):    
     
         acc = self.check_user()
-        if acc:
-            
-            self.redirect('/')
         
+        if acc: self.redirect('/')
         else:
         
             if self.user:
@@ -276,4 +267,3 @@ routes = [
     ]
     
 run_wsgi_app(webapp.WSGIApplication(routes, debug=True))
-
