@@ -6,7 +6,7 @@
 # Author: Carl Smith, Piousoft
 # MailTo: carl.input@gmail.com
 
-import random, hashlib, time, os
+import random, hashlib, time, os, urlparse
 
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
@@ -22,6 +22,7 @@ if not boto.config.has_section('Boto'):
     boto.config.add_section('Boto')
 boto.config.set('Boto', 'https_validate_certificates', 'False')
 
+AMI_ID = 'ami-affe51c6'
 template_dir = os.path.join(os.path.dirname(__file__), 'templates/')
 
 
@@ -38,6 +39,14 @@ def valid_ec2_key(access_key, secret_key, key_name):
             .get_all_key_pairs([key_name])[0]       
     except: return False
     return True
+
+def valid_nb_url(nb_url):
+    
+    # placeholder until we can do smarter verification
+    try: 
+        parsed = urlparse.urlparse(nb_url)
+    except: return False
+    return parsed.path.endswith(".git")
 
 def hash_password(password):
     
@@ -71,7 +80,8 @@ def get_instance_list(access_key, secret_key):
 
     for inst in instances:
         
-        ours  = inst.image_id == 'ami-affe51c6'
+        ours  = inst.image_id == AMI_ID
+
         lives = (inst.state != 'terminated')
         
         if ours and lives:
@@ -82,7 +92,7 @@ def get_instance_list(access_key, secret_key):
             instance_id   = inst.id 
             date, time    = inst.launch_time.split('T')
             key_name      = inst.key_name
-        
+
             time=time[:-5]
 
             transitional = False
@@ -101,7 +111,11 @@ def get_instance_list(access_key, secret_key):
         
             if dns_name:
             
-                if key_name is not None:
+                html = template_dir + 'serving_buttons.html'
+                args = {'instance': instance_id}
+                serving_buttons = template.render(html, args)
+
+                if key_name:
                     
                     html_output += ( tab +
                         'ssh: <span id="serving">ubuntu@{} (key={})</span><br>'
@@ -109,23 +123,27 @@ def get_instance_list(access_key, secret_key):
 
                 try: # check if the instance is actively serving
             
-                    urlfetch.fetch(
+                    result = urlfetch.fetch(
                         'https://'+dns_name+':8888',
                         validate_certificate=False,
-                        deadline=25
-                        ).content
-                                
+                        deadline=25)
+
+                    if result.status_code == 500:
+
+                        state = (
+                            '{} <a id="nb_error" '
+                            'href="https://{}:8888">Notebook failed at {}:8888'
+                            '</a>').format(tab, dns_name, dns_name)
+                        transitional = False
+                        raise
+                        
                 except:
             
                     state = '<b>'+state+'</b>'
-                    html_output += tab + "State: "+ state
+                    html_output += tab + "State: "+ state + serving_buttons
                 
                 else:
             
-                    html = template_dir + 'serving_buttons.html'
-                    args = {'instance': instance_id}
-                    serving_buttons = template.render(html, args)
-                
                     html_output += (
                         '{}Serving at <a id="serving" '
                         'href="https://{}:8888">{}:8888</a>{}'
@@ -187,7 +205,7 @@ def create_vm(access_key, secret_key, user_details, instance_class, ec2_key):
         security_groups.append('notebookcloud_ssh_group')
 
     reservation = connection.run_instances(
-        'ami-affe51c6',
+        AMI_ID,
         instance_type=instance_class,
         security_groups=security_groups,
         key_name=ec2_key,

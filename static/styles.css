@@ -25,6 +25,12 @@ body {
     color: #494;
     }
 
+#nb_error {
+    font-size: 14px;
+    color: #922;
+    font-weight: 900;
+    }
+
 a {color:#888; font-size: 12px;}
 b {color:#555}
 

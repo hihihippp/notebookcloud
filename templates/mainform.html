@@ -70,9 +70,11 @@
                 <br>
                 <div style="padding: 20px;">
                 AWS <span class="bolder">Access</span> Key: <br>
-                    <input type="password" name="key0"> <br><br>
+                    <input type="text" name="key0" value="{{ access_key }}"> 
+                <br><br>
                 AWS <span class="bolder">Secret</span> Key: <br>
-                    <input type="password" name="key1"> <br>
+                    <input type="password" name="key1" value="{{ secret_key }}"> 
+                <br>
             </div>
 
             <br><b><i>EC2 Key Name</i></b>
@@ -86,7 +88,18 @@
             <br>
             <div style="padding: 20px;">
             EC2 Key Name (optional)<br>
-	    <input type="text" name="ec2key">
+	    <input type="text" name="ec2key" value="{{ ec2_key }}">
+	    </div>
+	    
+            <br><b><i>Git Notebooks</i></b>
+            <br><br>
+            To load your notebook directory from a git repository at launch,
+            give the full URL <br>
+	    (eg, https://gist.github.com/70ff57c551fc0214d845.git) 
+            <br>
+            <div style="padding: 20px;">
+            Git URL (optional)<br>
+	    <input type="text" name="nburl" value="{{ nb_url }}">
 	    </div>
 	    
              <br><b><i>Notebook Password</i></b><br>
