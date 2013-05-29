@@ -15,6 +15,8 @@ from google.appengine.api import users
 
 from funcs import *
 
+import sys
+
 class BaseHandler(webapp.RequestHandler):
 
     user = users.get_current_user()
@@ -104,10 +106,11 @@ class LaunchVM(BaseHandler):
                 'c1.xlarge', 'cg1.4xlarge', 'cc1.4xlarge', 'cc2.8xlarge'
                 ][int(self.request.get('iclass'))]
             
+            ec2_key = acc.ec2_key if hasattr(acc, 'ec2_key') else None
             reservation = str(create_vm(
-                acc.access_key, acc.secret_key, acc.user_data, iclass
+                acc.access_key, acc.secret_key, acc.user_data, iclass, ec2_key
                 )[1]).split(':')[1]
-            
+            logging.info("recording instance reservation "+reservation)
             acc.reservations.append(reservation)
             acc.put()
     
@@ -141,7 +144,7 @@ class UpdateUserDetails(BaseHandler):
             password_1 = self.request.get('pwd1')
             access_key = self.request.get('key0')
             secret_key = self.request.get('key1')
-            
+            ec2_key    = self.request.get('ec2key')
             rejection = (
                 '<br><br>&nbsp;&nbsp;&nbsp;&nbsp;Your account has '
                 '<span class=bolder>not</span> been updated.'
@@ -157,7 +160,13 @@ class UpdateUserDetails(BaseHandler):
             
                 html = template_dir + 'error.html'
                 args = {'error': 'Invalid AWS keys.'+rejection}
-                self.response.out.write(template.render(path, args))
+                self.response.out.write(template.render(html, args))
+                
+            elif ec2_key and not valid_ec2_key(access_key, secret_key, ec2_key):
+            
+                html = template_dir + 'error.html'
+                args = {'error': 'Invalid EC2 key.'+rejection}
+                self.response.out.write(template.render(html, args))
                 
             else:
             
@@ -182,6 +191,7 @@ class UpdateUserDetails(BaseHandler):
                 acc.user_data = user_data
                 acc.access_key = access_key
                 acc.secret_key = secret_key
+                acc.ec2_key = ec2_key
                 acc.valid = True
                 acc.put()
                 
@@ -194,7 +204,7 @@ class DeleteUserDetails(BaseHandler):
     
         acc = self.check_user()
         if acc: acc.delete()      
-        
+            
         self.redirect('/login')
             
             
@@ -204,33 +214,20 @@ class Login(BaseHandler):
     
         acc = self.check_user()
         
-        if acc: self.redirect('/')
-        else:
-        
-            if self.user:
-                
-                lastline = (
-                    'You\'re logged in with your Google Account.'
-                    '<br><br><span class=pwd_good>{}</span><br><br>'
-                    'You will need to create a NotebookCloud account'
-                    ' to continue.<br><br><br>'
-                    ).format(self.user.email())
-                    
-                button = 'Create NotebookCloud Account'
-                goto = '/mainform'
+        if acc: 
+
+            self.redirect('/')
+
+        elif self.user:
+
+            html = template_dir + 'create_account.html'
+            args = {'email':self.user.email()}
+            self.response.out.write(template.render(html, args))
+
+        else: # if the user isn't logged into to google
             
-            else: # if the user isn't logged into to google
-            
-                lastline = (
-                    'You need to sign in with a Google Account. '
-                    'Read the docs to learn more.<br><br><br>'
-                    )
-                    
-                button = 'Log In With Google Account'
-                goto = '/google_login'
-                
-            html = template_dir + 'homepage.html'
-            args = {'goto': goto, 'lastline': lastline, 'button': button}
+            html = template_dir + 'ask_login.html'
+            args = {}
             self.response.out.write(template.render(html, args))
 
 
@@ -241,6 +238,13 @@ class GoogleLogin(BaseHandler):
         google_login_url = users.create_login_url('/login')
         self.redirect(google_login_url)
 
+class GoogleLogout(BaseHandler):
+
+    def get(self):
+    
+        google_logout_url = users.create_logout_url('/login')
+        self.redirect(google_logout_url)
+
 
 class Account(db.Model):
     
@@ -250,6 +254,7 @@ class Account(db.Model):
     secret_key   = db.StringProperty(multiline=False)
     reservations = db.ListProperty(str)    
     valid        = db.BooleanProperty()
+    ec2_key      = db.StringProperty(multiline=False)
 
 
 # Map and Serve
@@ -257,6 +262,7 @@ routes = [
     ('/login',          Login),
     ('/instance_info',  InstanceInfo),
     ('/google_login',   GoogleLogin),
+    ('/google_logout',  GoogleLogout),
     ('/control/.*',     ControlVM),
     ('/mainform',       ServeForm),
     ('/docs',           ServeDocs),

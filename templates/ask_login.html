@@ -14,7 +14,9 @@
     <div class=page>
         <b>NotebookCloud</b>
         <br><br>
-        {{ lastline|safe }}
+        You need to sign in with a Google Account.
+        Read the docs to learn more.
+        <br><br>
         <!-- Nav Menu -->
         <div>
             <form>
@@ -22,15 +24,9 @@
                 onmousedown="this.className = 'ibutton_in'" onmouseup="this.className = 'ibutton'"
                 onmouseout="this.className = 'ibutton'" value="Documentaion">
             <br><br>
-            <input type=button class="ibutton" onclick="window.location.href = '{{ goto }}'"
+            <input type=button class="ibutton" onclick="window.location.href = '/google_login'"
                 onmousedown="this.className = 'ibutton_in'" onmouseup="this.className = 'ibutton'"
-                onmouseout="this.className = 'ibutton'" value="{{ button }}">
-            {% if logout %}
-            <br><br>
-            <input type=button class="ibutton" onclick="window.location.href = '{{ logout }}'"
-                onmousedown="this.className = 'ibutton_in'" onmouseup="this.className = 'ibutton'"
-                onmouseout="this.className = 'ibutton'" value="Sign out">
-            {% endif %}
+                onmouseout="this.className = 'ibutton'" value="Log In With Google Account">
             </form>
         </div>
 

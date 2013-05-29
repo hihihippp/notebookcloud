@@ -73,9 +73,23 @@
                     <input type="password" name="key0"> <br><br>
                 AWS <span class="bolder">Secret</span> Key: <br>
                     <input type="password" name="key1"> <br>
-            </div><br><br>
+            </div>
 
-                <b><i>Notebook Password</i></b><br>
+            <br><b><i>EC2 Key Name</i></b>
+            <br><br>
+            If you want to be able to ssh or scp to your instance,<br> 
+               give the name of the EC2 key pair to use<br>
+              (you can view your key pairs or create new ones from your
+               <a href="https://console.aws.amazon.com/ec2/home#s=KeyPairs">
+		 EC2 Dashboard
+               </a>)
+            <br>
+            <div style="padding: 20px;">
+            EC2 Key Name (optional)<br>
+	    <input type="text" name="ec2key">
+	    </div>
+	    
+             <br><b><i>Notebook Password</i></b><br>
                 <p>Provide the password you'd like to use to access<br> your notebooks. It's traditional to
                 do this twice.</p>
             

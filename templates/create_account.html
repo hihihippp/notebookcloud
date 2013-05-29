@@ -14,7 +14,12 @@
     <div class=page>
         <b>NotebookCloud</b>
         <br><br>
-        {{ lastline|safe }}
+        You're logged in with your Google Account.
+        <br><br>
+	<span class=pwd_good>{{ email }}</span>
+	<br><br>
+        You will need to create a NotebookCloud account to continue.
+	<br><br><br>
         <!-- Nav Menu -->
         <div>
             <form>
@@ -22,15 +27,13 @@
                 onmousedown="this.className = 'ibutton_in'" onmouseup="this.className = 'ibutton'"
                 onmouseout="this.className = 'ibutton'" value="Documentaion">
             <br><br>
-            <input type=button class="ibutton" onclick="window.location.href = '{{ goto }}'"
+            <input type=button class="ibutton" onclick="window.location.href = '/mainform'"
                 onmousedown="this.className = 'ibutton_in'" onmouseup="this.className = 'ibutton'"
-                onmouseout="this.className = 'ibutton'" value="{{ button }}">
-            {% if logout %}
+                onmouseout="this.className = 'ibutton'" value="Create NotebookCloud Account">
             <br><br>
-            <input type=button class="ibutton" onclick="window.location.href = '{{ logout }}'"
+            <input type=button class="ibutton" onclick="window.location.href = '/google_logout'"
                 onmousedown="this.className = 'ibutton_in'" onmouseup="this.className = 'ibutton'"
                 onmouseout="this.className = 'ibutton'" value="Sign out">
-            {% endif %}
             </form>
         </div>
 
