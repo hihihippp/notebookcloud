@@ -71,7 +71,7 @@ def get_instance_list(access_key, secret_key):
 
     for inst in instances:
         
-        ours  = inst.image_id == 'ami-affe51c6'
+        ours  = inst.image_id == 'ami-ebbff282'
         lives = (inst.state != 'terminated')
         
         if ours and lives:
@@ -187,7 +187,7 @@ def create_vm(access_key, secret_key, user_details, instance_class, ec2_key):
         security_groups.append('notebookcloud_ssh_group')
 
     reservation = connection.run_instances(
-        'ami-affe51c6',
+        'ami-ebbff282',
         instance_type=instance_class,
         security_groups=security_groups,
         key_name=ec2_key,
