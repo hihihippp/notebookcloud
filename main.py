@@ -15,7 +15,7 @@ from google.appengine.api import users
 
 from funcs import *
 
-import sys
+import sys, urllib, logging
 
 class BaseHandler(webapp.RequestHandler):
 
@@ -25,7 +25,12 @@ class BaseHandler(webapp.RequestHandler):
     
         if not self.user: return None        
         
-        try: return Account.gql('WHERE user = :1', self.user)[0]
+        try: 
+            acc = Account.gql('WHERE user = :1', self.user)[0]
+            # upgrade legacy accounts
+            if not hasattr(acc, 'ec2_key'): acc.ec2_key = None            
+            if not hasattr(acc, 'nb_url'): acc.nb_url = None            
+            return acc
         except IndexError: return None
 
 
@@ -45,7 +50,9 @@ class MainScreen(BaseHandler):
             else:
             
                 html = template_dir + 'mainscreen.html'
-                args = {'username': self.user.email()}
+                args = {'username': self.user.email(),
+                        'nb_url': acc.nb_url or '',
+                        'ec2_key': acc.ec2_key or ''}
                 self.response.out.write(template.render(html, args))
 
         else: self.redirect('/login')
@@ -86,8 +93,14 @@ class ServeForm(BaseHandler):
         user = users.get_current_user()
         if user:
 
-            html = template_dir + 'mainform.html'
             args = {'username': self.user.email()}
+            acc = self.check_user()
+            if acc:
+                args['access_key'] = acc.access_key
+                args['secret_key'] = acc.secret_key
+                args['ec2_key'] = acc.ec2_key or ''
+                args['nb_url'] = acc.nb_url or ''
+            html = template_dir + 'mainform.html'
             self.response.out.write(template.render(html, args))
 
         else: self.redirect(users.create_login_url('/login'))        
@@ -106,15 +119,16 @@ class LaunchVM(BaseHandler):
                 'c1.xlarge', 'cg1.4xlarge', 'cc1.4xlarge', 'cc2.8xlarge'
                 ][int(self.request.get('iclass'))]
             
-            ec2_key = acc.ec2_key if hasattr(acc, 'ec2_key') else None
-            reservation = str(create_vm(
-                acc.access_key, acc.secret_key, acc.user_data, iclass, ec2_key
-                )[1]).split(':')[1]
+            ec2_key = acc.ec2_key
+            reservation = str(
+                create_vm(acc.access_key, acc.secret_key, acc.user_data, 
+                          iclass, ec2_key)[1]).split(':')[1]
             logging.info("recording instance reservation "+reservation)
             acc.reservations.append(reservation)
             acc.put()
-    
-        self.redirect('/login')
+            self.redirect('/')
+
+        else: self.redirect('/login')
 
 
 class ControlVM(BaseHandler):
@@ -145,6 +159,8 @@ class UpdateUserDetails(BaseHandler):
             access_key = self.request.get('key0')
             secret_key = self.request.get('key1')
             ec2_key    = self.request.get('ec2key')
+            nb_url     = self.request.get('nburl')
+
             rejection = (
                 '<br><br>&nbsp;&nbsp;&nbsp;&nbsp;Your account has '
                 '<span class=bolder>not</span> been updated.'
@@ -168,6 +184,12 @@ class UpdateUserDetails(BaseHandler):
                 args = {'error': 'Invalid EC2 key.'+rejection}
                 self.response.out.write(template.render(html, args))
                 
+            elif nb_url and not valid_nb_url(nb_url):
+            
+                html = template_dir + 'error.html'
+                args = {'error': 'Invalid Notebook url.'+rejection}
+                self.response.out.write(template.render(html, args))
+                
             else:
             
                 user_data = random.choice(('UK', 'US'))
@@ -181,7 +203,9 @@ class UpdateUserDetails(BaseHandler):
 
                 user_data += '|' + hash_password(password_0)
                 
-                try: acc = Account.gql('WHERE user = :1', user)[0]
+                if nb_url:
+                    user_data += '|' + nb_url
+                try: acc = Account.gql('WHERE user = :1', self.user)[0]
                 except:
                 
                     acc = Account()
@@ -192,8 +216,10 @@ class UpdateUserDetails(BaseHandler):
                 acc.access_key = access_key
                 acc.secret_key = secret_key
                 acc.ec2_key = ec2_key
+                acc.nb_url = nb_url
                 acc.valid = True
                 acc.put()
+                time.sleep(3) # Takes some time to sync
                 
                 self.redirect('/')
 
@@ -255,6 +281,7 @@ class Account(db.Model):
     reservations = db.ListProperty(str)    
     valid        = db.BooleanProperty()
     ec2_key      = db.StringProperty(multiline=False)
+    nb_url       = db.StringProperty(multiline=False)
 
 
 # Map and Serve

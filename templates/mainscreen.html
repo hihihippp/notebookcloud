@@ -123,11 +123,7 @@
 	    font-size: small;
             text-align: left;"
             >
-            <span style="color:#333;">Instance Launcher</span>
-            <br><br>
-            Select any instance type to see more information about it. If you are unsure<br>
-            about your options, please consult the documentation.
-            <br><br><br><br><br><br><br>
+	  ... display_info() will fill this in...
         <td>
         </table>
         </div>
@@ -179,7 +175,14 @@
                 output =  '<span style="color:#333;">Instance Launcher</span><br><br>'
                 output += 'Select any instance type to see more information about it. If you are unsure<br>'
                 output += 'about your options, please consult the documentation.'
-                output += '<br><br><br><br><br><br><br>'
+                output += '<br><br><br>'
+                {% if nb_url %}	    
+                output += 'notebooks: {{ nb_url }}<br>'
+                {% endif %}
+                {% if ec2_key %}	    
+	        output += 'ssh key: {{ ec2_key }}<br>'
+                {% endif %}
+                output += '<br><br><br><br>'
                 obj.innerHTML = output;
                 };
 
@@ -472,6 +475,9 @@
                 }
             }
 
+        $(document).ready(function() {
+	    display_info('refresh') ;
+	}) ;
     </script>
 
 </body></html>
